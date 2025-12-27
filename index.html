@@ -3,72 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Hadir Pendamping | Qiroati Demak</title>
+    <title>Daftar Hadir v1.1 | Egalitarian</title>
     <style>
-        /* --- KONTROL PANEL (STYLE ELEGAN) --- */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #525659;
-            margin: 0; padding: 0;
-            text-align: center;
-        }
-
+        /* --- KONTROL PANEL --- */
+        body { font-family: Arial, sans-serif; background-color: #525659; margin: 0; padding: 0; text-align: center; }
         .control-panel {
-            background: #fff; width: 215mm; margin: 20px auto;
-            padding: 15px 20px; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,.3); text-align: left;
-            box-sizing: border-box;
+            background: #fff; width: 215mm; margin: 20px auto; padding: 15px 20px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,.3); text-align: left; box-sizing: border-box;
         }
+        .form-row { display: flex; gap: 15px; margin-bottom: 12px; align-items: flex-end; }
+        .form-group { flex: 1; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
 
-        /* Maksimal 3 baris, scroll horizontal */
         #shift-container {
-            border: 1px solid #ddd; padding: 10px;
-            background: #fafafa; margin-bottom: 12px;
-            display: flex;
-            flex-flow: column wrap; /* Memaksa pindah kolom setelah 3 item */
-            height: 95px; /* Kunci tinggi untuk maksimal 3 baris (@30px per item) */
-            overflow-x: auto;
-            overflow-y: hidden;
-            gap: 0 20px;
+            border: 1px solid #ddd; padding: 10px; background: #fafafa; margin-bottom: 12px;
+            display: flex; flex-flow: column wrap; height: 95px; overflow-x: auto; gap: 0 20px;
         }
+        .cb-item { font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; height: 30px; width: 200px; flex-shrink: 0; font-weight: bold; }
 
-        #shift-container::-webkit-scrollbar { height: 8px; }
-        #shift-container::-webkit-scrollbar-thumb { background: #bbb; border-radius: 10px; }
+        .btn-generate { width: 100%; padding: 12px; font-weight: bold; background: #28a745; color: #fff; border: none; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
 
-        .cb-item {
-            font-size: 13px; cursor: pointer;
-            display: flex; align-items: center;
-            gap: 8px; height: 30px;
-            width: 220px; flex-shrink: 0;
-            white-space: nowrap; font-weight: bold;
-        }
-
-        .btn-generate {
-            width: 100%; padding: 12px; font-weight: bold;
-            background: #28a745; color: #fff; border: none;
-            cursor: pointer; border-radius: 4px; text-transform: uppercase;
-        }
-
-        /* --- SETTING KERTAS F4 (INDONESIA) --- */
-        @page { 
-            size: 215mm 330mm; 
-            margin: 15mm 10mm 10mm 15mm; 
-        }
-
+        /* --- SETTING KERTAS F4 (215 x 330 mm) --- */
+        @page { size: 215mm 330mm; margin: 15mm 10mm 10mm 15mm; }
         .page-container {
-            background: white; width: 215mm; min-height: 330mm;
-            margin: 20px auto; padding: 10mm 15mm; box-sizing: border-box;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            text-align: left; position: relative;
-            font-family: "Times New Roman", Times, serif;
+            background: white; width: 215mm; min-height: 330mm; margin: 20px auto; padding: 10mm 15mm;
+            box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.5); text-align: left;
+            font-family: "Times New Roman", Times, serif; position: relative;
         }
 
-        /* KOP SURAT MIRIP DOCX */
-        .kop-header {
-            display: flex; align-items: center;
-            border-bottom: 4px double #000; /* Garis Ganda khas Dokumen Resmi */
-            padding-bottom: 10px; margin-bottom: 15px;
-        }
+        /* HEADER & KOP */
+        .kop-header { display: flex; align-items: center; border-bottom: 4px double #000; padding-bottom: 10px; margin-bottom: 15px; }
         .logo { width: 75px; height: 75px; margin-right: 20px; }
         .logo img { width: 100%; height: auto; }
         .kop-text { text-align: center; flex: 1; line-height: 1.1; }
@@ -76,48 +41,52 @@
         .kop-text h3 { margin: 0; font-size: 14pt; font-weight: bold; }
         .kop-text p { margin: 4px 0 0; font-size: 10pt; font-style: italic; }
 
-        /* JUDUL */
         .doc-title { text-align: center; margin-bottom: 15px; }
         .doc-title h1 { margin: 0; font-size: 16pt; text-decoration: underline; font-weight: bold; }
         .doc-title p { margin: 5px 0 0; font-size: 12pt; }
 
-        /* TABEL SHIFT */
-        .shift-section { margin-bottom: 25px; page-break-inside: avoid; }
-        .shift-label { 
-            font-weight: bold; font-size: 12pt; 
-            margin-bottom: 5px; border-bottom: 1px solid #000; 
-            display: inline-block; 
-        }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11pt; }
+        /* TABEL STYLE */
+        .shift-section { margin-bottom: 20px; page-break-inside: avoid; }
+        .shift-label { font-weight: bold; font-size: 12pt; margin-bottom: 4px; border-bottom: 1px solid #000; display: inline-block; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11pt; }
         th, td { border: 1px solid black; padding: 4px 6px; vertical-align: middle; }
         th { background: #e2e2e2 !important; text-align: center; font-weight: bold; }
         
         .col-no { width: 25px; text-align: center; }
-        .col-jml { width: 50px; text-align: center; }
-        .col-ttd { width: 80px; font-size: 9pt; vertical-align: top; padding-top: 5px; }
+        .col-jml { width: 45px; text-align: center; }
         
-        .pendamping-cell { height: 45px; vertical-align: top; position: relative; }
-        .pendamping-hint { font-size: 9pt; color: #000; position: absolute; bottom: 2px; left: 6px; width: 90%; border-top: 1px dotted #999; }
+        /* KOLOM PENDAMPING (2 Baris Samar) */
+        .pendamping-cell { height: 50px; vertical-align: top; padding: 4px 6px !important; }
+        .samar { color: rgba(0,0,0,0.15); font-size: 10pt; display: block; }
+        .samar-border { border-top: 1px solid rgba(0,0,0,0.05); margin-top: 18px; padding-top: 2px; }
+
+        /* KOLOM TTD (2 Kolom Terpisah) */
+        .col-ttd { width: 55px; height: 50px; vertical-align: top; font-size: 9pt; padding: 3px !important; }
 
         .footer-note { margin-top: 15px; font-size: 10pt; font-style: italic; border-top: 1px solid black; padding-top: 5px; }
 
-        /* MEDIA PRINT */
         @media print {
             body { background: none; }
             .control-panel { display: none !important; }
-            .page-container { margin: 0; box-shadow: none; border: none; width: 100%; }
-            th { background: #e2e2e2 !important; -webkit-print-color-adjust: exact; }
+            .page-container { margin: 0; box-shadow: none; width: 100%; }
         }
     </style>
 </head>
 <body>
 
 <div class="control-panel">
-    <h3 style="margin: 0 0 5px 0;">CETAK DAFTAR HADIR PENDAMPING</h3>
-    <p style="font-size: 11px; color: #666; margin: 0 0 10px 0;">Pilih Gelombang (Satu gelombang akan mencetak 3 Shift sekaligus):</p>
+    <h3 style="margin:0 0 10px 0">CETAK DAFTAR HADIR PENDAMPING</h3>
     
-    <div id="shift-container">Memuat data Google Sheets...</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>TANGGAL HIJRIYAH & MASEHI (Tampil di Judul)</label>
+            <input type="text" id="inputTanggal" value="Ahad Wage, 28 Desember 2025 M / 8 Rojab 1447 H">
+        </div>
+    </div>
+
+    <label style="font-size: 11px; font-weight: bold; color: #666;">PILIH GELOMBANG:</label>
+    <div id="shift-container">Memuat data...</div>
     
     <button class="btn-generate" onclick="generate()">GENERATE DOKUMEN F4</button>
 </div>
@@ -130,6 +99,21 @@
     const LOGO_SRC = "QIRAATI.png";
     
     let allData = [];
+
+    // --- SMART CASE CONVERTER ---
+    function smartCase(text) {
+        if (!text) return "";
+        const statusLembaga = ["TPQ", "TPA", "SD", "MI", "SDIT", "TK", "KB", "RA", "MTS", "SMP", "SMA"];
+        
+        return text.split(' ').map(word => {
+            const cleanWord = word.replace(/[^a-zA-Z0-9]/g, '');
+            if (statusLembaga.includes(cleanWord.toUpperCase())) {
+                return cleanWord.toUpperCase();
+            }
+            // Capital Each Word
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+    }
 
     window.onload = async () => {
         try {
@@ -144,7 +128,6 @@
     function processData(csv) {
         const rows = csv.trim().split('\n');
         const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim().toUpperCase());
-        
         allData = [];
         let gelombangs = new Set();
 
@@ -152,18 +135,14 @@
             const cols = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             let p = {};
             cols.forEach((v, j) => p[headers[j]] = v ? v.replace(/"/g, '').trim() : '');
-            
-            const gel = p['GELOMBANG'];
-            if(gel) {
+            if(p['GELOMBANG']) {
                 allData.push(p);
-                gelombangs.add(gel);
+                gelombangs.add(p['GELOMBANG']);
             }
         }
 
         const container = document.getElementById('shift-container');
         container.innerHTML = '';
-        
-        // Render Checkbox per Gelombang
         Array.from(gelombangs).sort().forEach(g => {
             const label = document.createElement('label');
             label.className = 'cb-item';
@@ -174,23 +153,22 @@
 
     function generate() {
         const selected = document.querySelectorAll('input[name="chk-gel"]:checked');
-        if (selected.length === 0) return alert("Pilih minimal satu Gelombang!");
+        if (selected.length === 0) return alert("Pilih Gelombang!");
 
         const output = document.getElementById('main-output');
         output.innerHTML = '';
 
         selected.forEach(chk => {
-            const gelVal = chk.value;
-            renderPage(gelVal);
+            renderPage(chk.value);
         });
     }
 
     function renderPage(gelombang) {
+        const tglValue = document.getElementById('inputTanggal').value;
         const output = document.getElementById('main-output');
         const page = document.createElement('div');
         page.className = 'page-container';
 
-        // Header Kertas
         page.innerHTML = `
             <div class="kop-header">
                 <div class="logo"><img src="${LOGO_SRC}" onerror="this.style.visibility='hidden'"></div>
@@ -202,59 +180,52 @@
             </div>
             <div class="doc-title">
                 <h1>DAFTAR HADIR PENDAMPING</h1>
-                <p contenteditable="true">Ahad Wage, 28 Desember 2025 M / 8 Rojab 1447 H</p>
+                <p>${tglValue}</p>
             </div>
             <div class="content-tables"></div>
-            <div class="footer-note">
-                Ralat Nama/ Mendaftarkan Pendamping Tambahan melalui WA ke 0896-0898-6635
-            </div>
+            <div class="footer-note">Ralat Nama/ Mendaftarkan Pendamping Tambahan melalui WA ke 0896-0898-6635</div>
         `;
 
         const tableArea = page.querySelector('.content-tables');
         const dataGel = allData.filter(d => d['GELOMBANG'] === gelombang);
 
-        // DOUBLE GROUPING: Pecah data Gelombang menjadi 3 Shift
         [1, 2, 3].forEach(shiftNum => {
             const dataShift = dataGel.filter(d => String(d['SHIFT']) === String(shiftNum));
-            if(dataShift.length > 0) {
-                tableArea.appendChild(createShiftTable(shiftNum, dataShift));
-            }
+            if(dataShift.length > 0) tableArea.appendChild(createShiftTable(shiftNum, dataShift));
         });
 
         output.appendChild(page);
     }
 
     function createShiftTable(num, data) {
-        // Rekap Lembaga
         let rekap = {};
         data.forEach(d => {
             let tpq = d['ASAL LEMBAGA / TPQ'] || 'UMUM';
             if(tpq.includes('-')) tpq = tpq.split('-').slice(1).join('-').trim();
+            // Gunakan Smart Case di sini
+            tpq = smartCase(tpq);
             rekap[tpq] = (rekap[tpq] || 0) + 1;
         });
 
         const div = document.createElement('div');
         div.className = 'shift-section';
-        
         let waktu = num == 1 ? "07.00 WIB" : (num == 2 ? "08.30 WIB" : "10.00 WIB");
         div.innerHTML = `<div class="shift-label">Shift ${num} | ${waktu}</div>`;
 
         let rows = '';
         Object.keys(rekap).sort().forEach((tpq, i) => {
             const no = i + 1;
-            // Logika TTD Selang-Seling
-            const ttdCell = (no % 2 !== 0) ? `${no}. ........` : `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${no}. ........`;
-            
             rows += `
                 <tr>
                     <td class="col-no">${no}</td>
                     <td>${tpq}</td>
                     <td class="col-jml">${rekap[tpq]}</td>
                     <td class="pendamping-cell">
-                        Nama terang:
-                        <div class="pendamping-hint">Nomor Hp / WA:</div>
+                        <span class="samar">Nama terang</span>
+                        <span class="samar samar-border">Nomor Hp / WA</span>
                     </td>
-                    <td class="col-ttd">${ttdCell}</td>
+                    <td class="col-ttd">${no % 2 !== 0 ? no : ''}</td>
+                    <td class="col-ttd">${no % 2 === 0 ? no : ''}</td>
                 </tr>
             `;
         });
@@ -263,12 +234,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>NO</th>
-                        <th>NAMA LEMBAGA/TPQ</th>
-                        <th>JML PESERTA</th>
-                        <th>PENDAMPING</th>
-                        <th>TTD</th>
+                        <th rowspan="2">NO</th><th rowspan="2">NAMA LEMBAGA/TPQ</th><th rowspan="2">JML PESERTA</th><th rowspan="2">PENDAMPING</th><th colspan="2">TTD</th>
                     </tr>
+                    <tr><th style="font-size:8pt">Ganjil</th><th style="font-size:8pt">Genap</th></tr>
                 </thead>
                 <tbody>${rows}</tbody>
             </table>
