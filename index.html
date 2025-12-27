@@ -3,191 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Hadir Pendamping - Qiroati Demak</title>
+    <title>Cetak Kartu EBTAQ - Elegan & Ringkas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
-        /* SETTING KERTAS A4 */
-        @page { size: A4; margin: 10mm; }
-        body { font-family: 'Times New Roman', serif; margin: 0; padding: 20px; background: #eee; }
-        
-        .page-container {
-            background: white; width: 210mm; min-height: 297mm;
-            margin: 0 auto; padding: 15mm; box-sizing: border-box;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #525659;
+            margin: 0; padding: 0; 
+            text-align: center;
         }
 
-        /* KOP SURAT  */
-        .kop-header { display: flex; align-items: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 20px; }
-        .logo { width: 80px; height: 80px; margin-right: 15px; }
-        .logo img { width: 100%; height: auto; }
-        .kop-text { text-align: center; flex: 1; }
-        .kop-text h2 { margin: 0; font-size: 18pt; font-weight: bold; color: #006400; /* Hijau Qiroati */ }
-        .kop-text h3 { margin: 0; font-size: 14pt; font-weight: bold; }
-        .kop-text p { margin: 5px 0 0; font-size: 10pt; font-style: italic; }
+        /* PANEL KONTROL */
+        .control-panel {
+            background: #fff; width: 215mm; margin: 20px auto;
+            padding: 15px 20px; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.3); text-align: left;
+            box-sizing: border-box;
+        }
 
-        /* JUDUL HALAMAN [cite: 3, 4] */
-        .doc-title { text-align: center; margin-bottom: 20px; font-weight: bold; }
-        .doc-title h1 { margin: 0; font-size: 16pt; text-decoration: underline; }
-        .doc-title p { margin: 5px 0 0; font-size: 12pt; }
+        /* AREA PILIHAN - 3 BARIS HORIZONTAL */
+        #shift-container {
+            border: 1px solid #ddd; 
+            padding: 8px;
+            background: #fafafa; 
+            margin-bottom: 12px; 
+            
+            display: flex;
+            flex-flow: column wrap; 
+            height: 85px;           
+            
+            overflow-x: auto;       
+            overflow-y: hidden;     
+            gap: 0 15px;            
+        }
 
-        /* TABEL [cite: 6, 8, 10] */
-        .shift-section { margin-bottom: 30px; page-break-inside: avoid; }
-        .shift-title { font-weight: bold; font-size: 12pt; margin-bottom: 5px; border-bottom: 1px solid #000; display: inline-block; }
+        #shift-container::-webkit-scrollbar { height: 6px; }
+        #shift-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11pt; }
-        th, td { border: 1px solid black; padding: 5px; vertical-align: middle; }
-        th { background-color: #f0f0f0; text-align: center; font-weight: bold; }
-        
-        /* Kolom TTD & Pendamping */
-        .col-no { width: 30px; text-align: center; }
-        .col-jml { width: 60px; text-align: center; }
-        .col-ttd { width: 80px; }
-        .pendamping-cell { height: 50px; position: relative; }
-        .pendamping-hint { font-size: 9pt; color: #555; display: block; margin-top: 25px; border-top: 1px dotted #ccc; }
+        .cb-item { 
+            font-size: 12px;        
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            height: 26px;            
+            width: 190px;            
+            flex-shrink: 0;         
+            white-space: nowrap;
+        }
 
-        /* Footer [cite: 11] */
-        .footer-note { margin-top: 20px; font-size: 10pt; font-style: italic; border-top: 1px solid black; padding-top: 5px; }
+        .btn-generate { 
+            width: 100%; padding: 10px; font-weight: bold; 
+            background: #28a745; color: #fff; border: none; 
+            cursor: pointer; border-radius: 4px; text-transform: uppercase; 
+        }
+
+        /* LAYOUT KERTAS */
+        .page-label {
+            display: inline-block; background-color: #222; color: #fff;
+            padding: 4px 12px; border-radius: 4px; font-size: 13px;
+            font-weight: bold; margin-bottom: 5px; margin-top: 20px;
+        }
+
+        .page-container {
+            background-color: white; width: 215mm; height: 330mm;
+            margin: 0 auto 15px auto; box-sizing: border-box;
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            page-break-after: always; position: relative; overflow: hidden; text-align: left; 
+        }
+
+        .cut-line-v { position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed #999; z-index: 10; }
+        .cut-line-h { position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed #999; z-index: 10; }
 
         @media print {
-            body { background: white; padding: 0; }
-            .page-container { box-shadow: none; margin: 0; width: 100%; }
-            .no-print { display: none; }
+            body { background: none; }
+            .control-panel, .page-label { display: none !important; }
+            .page-container { margin: 0; box-shadow: none; border: none; }
+            .nomor-box { background-color: #FFC000 !important; -webkit-print-color-adjust: exact; }
+            th { background-color: #ccc !important; -webkit-print-color-adjust: exact; }
+            .nama-box { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
         }
+
+        /* DESAIN KARTU */
+        .card-wrapper { padding: 5mm; box-sizing: border-box; display: flex; }
+        .card-frame { border: 2px solid #000080; width: 100%; height: 100%; padding: 5px; box-sizing: border-box; display: flex; flex-direction: column; position: relative; }
+        .header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; height: 1.5cm; }
+        .logo { width: 50px; height: 50px; display:flex; align-items:center; }
+        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .title-group { flex: 1; text-align: center; font-family: "Times New Roman", serif; line-height: 1.2; }
+        .t1 { font-size: 11pt; font-weight: bold; }
+        .t2 { font-size: 10pt; font-weight: bold; }
+        .t3 { font-size: 11pt; font-weight: bold; }
+        .nomor-box { width: 45px; height: 35px; background-color: #FFC000; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16pt; font-family: 'Courier New', monospace; }
+        
+        .identity-grid { display: grid; grid-template-columns: 2.45cm auto 2.6cm; grid-template-rows: repeat(5, 0.65cm); width: 100%; margin-bottom: 8px; }
+        .id-photo { grid-column: 1; grid-row: 1 / span 5; background: #eee; border: 1px solid #ccc; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .id-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .id-text-row { grid-column: 2; padding-left: 10px; font-size: 11pt; font-weight: bold; display: flex; align-items: center; border-bottom: 1px dotted #ccc; white-space: nowrap; overflow: hidden; }
+        .id-qr { grid-column: 3; grid-row: 1 / span 3; display: flex; justify-content: flex-end; align-items: flex-start; border-bottom: 1px dotted #ccc; }
+        .id-lembaga-full { grid-column: 2 / span 2; padding-left: 10px; font-size: 11pt; font-weight: bold; display: flex; align-items: center; border-bottom: 1px dotted #ccc; white-space: nowrap; overflow: hidden; }
+        
+        .nama-box { height: 1.1cm; width: 100%; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; font-size: 12pt; text-transform: uppercase; margin-bottom: 5px; background-color: #f2f2f2; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; border: 2px solid #000; flex: 1; }
+        th, td { border: 1px solid #000; padding: 2px 4px; font-size: 10pt; }
+        th { background-color: #ccc; }
+        .col-no { width: 8%; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="no-print" style="text-align: center; margin-bottom: 20px; padding: 20px; background: #fff; border: 1px solid #ddd;">
-        <h3>Konfigurasi Data</h3>
-        <label>Link CSV Google Sheet (Publish to Web):</label><br>
-        <input type="text" id="sheetUrl" style="width: 80%; padding: 5px;" 
-               placeholder="Tempel Link CSV di sini..." 
-               value=""> 
-        <br><br>
-        <button onclick="loadData()" style="padding: 10px 20px; background: green; color: white; border: none; cursor: pointer;">Muat Data</button>
-        <button onclick="window.print()" style="padding: 10px 20px; background: blue; color: white; border: none; cursor: pointer;">Cetak / PDF</button>
-    </div>
+<div class="control-panel">
+    <h3 style="margin: 0 0 5px 0; font-size: 18px;">KARTU KONTROL (F4/4)</h3>
+    <p style="font-size: 11px; color: #666; margin: 0 0 10px 0;">Pilih Gelombang & Shift (Scroll ke samping):</p>
+    
+    <div id="shift-container">Memuat data Google Sheets…</div>
+    
+    <button class="btn-generate" onclick="generate()">GENERATE KARTU</button>
+</div>
 
-    <div class="page-container">
-        <div class="kop-header">
-            <div class="logo">
-                <img src="https://via.placeholder.com/100x100?text=LOGO" alt="Logo Qiroati">
-            </div>
-            <div class="kop-text">
-                <h2>KOORDINATOR PENDIDIKAN AL-QUR’AN</h2>
-                <h3>METODE QIROATI CABANG DEMAK</h3>
-                <p>Sekretariat : Jl. Sunan Kalijaga No. 35 Betengan Bintoro Demak Hp. 0896-0898-6635</p>
-            </div>
-        </div>
-
-        <div class="doc-title">
-            <h1>DAFTAR HADIR PENDAMPING</h1>
-            <p contenteditable="true">Ahad Wage, 28 Desember 2025 M / 8 Rojab 1447 H</p>
-        </div>
-
-        <div id="content-area">
-            <p style="text-align: center;">Menunggu data dimuat...</p>
-        </div>
-
-        <div class="footer-note">
-            Ralat Nama/ Mendaftarkan Pendamping Tambahan melalui WA ke 0896-0898-6635
-        </div>
-    </div>
+<div id="main-output"></div>
 
 <script>
-    // Fungsi untuk memparsing CSV menjadi Array of Objects
-    function csvToArray(str, delimiter = ",") {
-        const headers = str.slice(0, str.indexOf("\n")).split(delimiter).map(h => h.trim());
-        const rows = str.slice(str.indexOf("\n") + 1).split("\n");
-        return rows.map(function (row) {
-            const values = row.split(delimiter);
-            const el = headers.reduce(function (object, header, index) {
-                object[header] = values[index] ? values[index].trim() : "";
-                return object;
-            }, {});
-            return el;
+    const SHEET_ID = '1eIcvIgCLWG3F9jQdsw5XN9llOsK2PoYWKUg1qaQJyyA';
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Biodata Cek`;
+    const LOGO_FILENAME = "QIRAATI.png";
+    let groupedData = {};
+
+    window.onload = async () => {
+        try {
+            const response = await fetch(SHEET_URL);
+            const csvText = await response.text();
+            processData(csvText);
+        } catch (e) {
+            document.getElementById('shift-container').innerText = "Gagal memuat data.";
+        }
+    };
+
+    function processData(csv) {
+        const rows = csv.trim().split('\n');
+        const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim().toUpperCase());
+        
+        groupedData = {};
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+            let p = {};
+            cols.forEach((v, j) => p[headers[j]] = v ? v.replace(/"/g, '').trim() : '');
+            
+            const key = `${p['GELOMBANG'] || '-'}-${p['SHIFT'] || '-'}`;
+            if (!groupedData[key]) groupedData[key] = [];
+            groupedData[key].push(p);
+        }
+
+        const container = document.getElementById('shift-container');
+        container.innerHTML = '';
+        
+        Object.keys(groupedData).sort().forEach(k => {
+            const l = document.createElement('label');
+            l.className = 'cb-item';
+            const displayLabel = k.replace('-', ' SFT ');
+            l.innerHTML = `<input type="checkbox" name="chk-shift" value="${k}"> Gel ${displayLabel} (${groupedData[k].length})`;
+            container.appendChild(l);
         });
     }
 
-    async function loadData() {
-        const url = document.getElementById('sheetUrl').value;
-        if(!url) { alert("Mohon isi Link CSV Google Sheet terlebih dahulu!"); return; }
+    function generate() {
+        const selected = document.querySelectorAll('input[name="chk-shift"]:checked');
+        if (selected.length === 0) return alert("Pilih minimal satu Gelombang/Shift!");
 
-        try {
-            const response = await fetch(url);
-            const csvText = await response.text();
-            const data = csvToArray(csvText); // Parse data
+        const output = document.getElementById('main-output');
+        output.innerHTML = '';
 
-            // Group data berdasarkan Shift 
-            const groupedData = {};
-            data.forEach(item => {
-                if(!item.Shift) return; // Skip baris kosong
-                if (!groupedData[item.Shift]) {
-                    groupedData[item.Shift] = {
-                        time: item.Waktu || "", // Mengambil waktu (07.00 WIB, dll)
-                        items: []
-                    };
-                }
-                groupedData[item.Shift].items.push(item);
-            });
+        let allSelectedParticipants = [];
+        selected.forEach(cb => {
+            allSelectedParticipants = allSelectedParticipants.concat(groupedData[cb.value]);
+        });
 
-            renderTables(groupedData);
+        allSelectedParticipants.sort((a, b) => parseInt(a.NOMOR) - parseInt(b.NOMOR));
+        renderPages(allSelectedParticipants);
+    }
 
-        } catch (error) {
-            console.error(error);
-            alert("Gagal mengambil data. Pastikan Link CSV benar dan Sheet sudah dipublikasikan.");
+    function renderPages(participants) {
+        const perPage = 4;
+        const totalPages = Math.ceil(participants.length / perPage);
+        const output = document.getElementById('main-output');
+
+        for (let i = 0; i < totalPages; i++) {
+            const pageLabel = document.createElement('div');
+            pageLabel.className = 'page-label';
+            pageLabel.innerText = `HALAMAN ${i + 1} DARI ${totalPages}`;
+            output.appendChild(pageLabel);
+
+            const page = document.createElement('div');
+            page.className = 'page-container';
+            page.innerHTML = '<div class="cut-line-v"></div><div class="cut-line-h"></div>';
+
+            const start = i * perPage;
+            const end = Math.min(start + perPage, participants.length);
+
+            for (let j = start; j < end; j++) {
+                page.appendChild(createCard(participants[j], j));
+                generateQR(participants[j]['ID PENDAFTARAN'], `qr-${j}`);
+            }
+            output.appendChild(page);
         }
     }
 
-    function renderTables(groups) {
-        const container = document.getElementById('content-area');
-        container.innerHTML = ""; // Bersihkan konten lama
+    function createCard(p, i) {
+        const wrap = document.createElement('div');
+        wrap.className = 'card-wrapper';
 
-        // Loop setiap Shift
-        Object.keys(groups).forEach(shiftKey => {
-            const group = groups[shiftKey];
-            
-            // Buat HTML Tabel
-            let tableRows = "";
-            group.items.forEach((row, index) => {
-                // Struktur Baris Tabel 
-                tableRows += `
-                    <tr>
-                        <td class="col-no">${index + 1}</td>
-                        <td>${row['Nama Lembaga'] || row['NAMA LEMBAGA/TPQ']}</td>
-                        <td class="col-jml">${row['Jml Peserta'] || row['JML PESERTA']}</td>
-                        <td class="pendamping-cell">
-                            Nama terang<br><br>
-                            <span class="pendamping-hint">Nomor Hp / WA</span>
-                        </td>
-                        <td class="col-ttd">${index + 1}</td>
-                    </tr>
-                `;
-            });
+        const sVal = String(p['SHIFT'] || '').trim();
+        let shiftDisplay = `Shift ${sVal}`;
+        if (sVal === "1") shiftDisplay = "Shift I (07.00 WIB)";
+        else if (sVal === "2") shiftDisplay = "Shift II (08.30 WIB)";
+        else if (sVal === "3") shiftDisplay = "Shift III (10.00 WIB)";
 
-            // Template Per Section (Shift) [cite: 5, 6]
-            const sectionHtml = `
-                <div class="shift-section">
-                    <div class="shift-title">Shift ${shiftKey} | ${group.time}</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>NO</th>
-                                <th>NAMA LEMBAGA/TPQ</th>
-                                <th>JML PESERTA</th>
-                                <th>PENDAMPING</th>
-                                <th>TTD</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
+        const rawL = p['ASAL LEMBAGA / TPQ'] || '-';
+        let kota = "", sekolah = rawL;
+        if (rawL.includes("-")) {
+            const pts = rawL.split("-");
+            kota = pts[0].trim();
+            sekolah = pts.slice(1).join("-").trim();
+        }
+
+        // --- SOLUSI FIX FOTO GOOGLE DRIVE ---
+        const rawF = p['KIRIM PAS FOTO UKURAN POSTCARD'] || '';
+        const matchId = rawF.match(/[-\w]{25,}/); 
+        let fSrc = "";
+        if (matchId) {
+            // Menggunakan endpoint lh3.googleusercontent.com/d/ID 
+            // Jalur ini jauh lebih stabil untuk file gambar di Google Drive
+            fSrc = `http://drive.google.com/uc?export=view&id=${matchId[0]}`;
+        }
+
+        wrap.innerHTML = `
+            <div class="card-frame">
+                <div class="header">
+                    <div class="logo"><img src="${LOGO_FILENAME}" onerror="this.style.visibility='hidden'"></div>
+                    <div class="title-group">
+                        <div class="t1">KARTU KONTROL PESERTA</div>
+                        <div class="t2">EVALUASI BELAJAR</div>
+                        <div class="t3">TAHAP AKHIR QIROATI (EBTAQ)</div>
+                    </div>
+                    <div class="nomor-box">${String(p['NOMOR'] || '').padStart(3, '0')}</div>
                 </div>
-            `;
-            container.innerHTML += sectionHtml;
-        });
+                <div class="identity-grid">
+                    <div class="id-photo">
+                        ${fSrc ? `<img src="${fSrc}" alt="Foto" onerror="this.parentElement.innerHTML='<small>X</small>';">` : '<small>3x4</small>'}
+                    </div>
+                    <div class="id-text-row">${p['ID PENDAFTARAN'] || '-'}</div>
+                    <div class="id-text-row">Gelombang ${p['GELOMBANG'] || '-'}</div>
+                    <div class="id-text-row">${shiftDisplay}</div>
+                    <div class="id-qr"><div id="qr-${i}"></div></div>
+                    <div class="id-lembaga-full">${kota}</div>
+                    <div class="id-lembaga-full">${sekolah}</div>
+                </div>
+                <div class="nama-box">${(p['NAMA LENGKAP (SESUAI AKTA)'] || '').toUpperCase()}</div>
+                <table>
+                    <thead>
+                        <tr><th class="col-no">NO</th><th>MATERI</th><th colspan="2">PARAF</th></tr>
+                    </thead>
+                    <tbody>
+                        ${["FASHOHAH","TARTIL","GHARIB","TAJWID","DDH","SSP","SHOLAT","WUDHU"].map((m, idx) => `
+                        <tr>
+                            <td class="col-no">${idx+1}</td>
+                            <td>${m}</td>
+                            <td style="width:20%; color:#aaa; vertical-align:top; font-size:9pt;">${(idx%2===0)?(idx+1):''}</td>
+                            <td style="width:20%; color:#aaa; vertical-align:top; font-size:9pt;">${(idx%2!==0)?(idx+1):''}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        return wrap;
+    }
+
+    function generateQR(txt, id) {
+        setTimeout(() => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = "";
+                new QRCode(el, { text: txt || "N/A", width: 70, height: 70 });
+            }
+        }, 200);
     }
 </script>
-
 </body>
 </html>
