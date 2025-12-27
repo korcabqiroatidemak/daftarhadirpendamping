@@ -115,7 +115,7 @@
     function smartCase(text) {
         if (!text) return "";
         let cleaned = romanToNumber(text.trim());
-        const whitelist = ["TPQ", "TPA", "SD", "MI", "MIS", "MTs", "MTS", "SMP", "MA", "PP.", "Pon.Pes.", "BUQ", "SDIT", "TK", "RA"];
+        const whitelist = ["TPQ", "TPA", "SD", "MI", "MIS", "MTs", "MTS", "SMP", "MA", "PP.", "Pon.Pes.", "BUQ", "SDIT", "TK", "RA", "KH."];
         
         return cleaned.split(' ').map(word => {
             const upperWord = word.toUpperCase().replace(/[.,]/g, '');
