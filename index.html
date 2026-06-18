@@ -56,7 +56,7 @@
         th { background: #e2e2e2 !important; text-align: center; font-weight: bold; }
         
         .col-no { width: 25px; text-align: center; }
-        .col-lembaga { width: 130px; } /* Perbaikan: Lebar 130px */
+        .col-lembaga { width: 130px; } 
         .col-jml { width: 40px; text-align: center; }
         
         /* KOLOM PENDAMPING */
@@ -95,8 +95,10 @@
 <div id="main-output"></div>
 
 <script>
-    const SHEET_ID = '1eIcvIgCLWG3F9jQdsw5XN9llOsK2PoYWKUg1qaQJyyA';
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Biodata Cek`;
+    // UPDATE: Penyelarasan ID Sheet dan GID untuk merujuk ke BIO
+    const SHEET_ID = '180oIFF3WRaijxLn_LZiu12f0m5mTxZ8DY3w4t1Jd5FY';
+    const GID_BIO = '644681055';
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID_BIO}`;
     const LOGO_SRC = "QIRAATI.png";
     let allData = [];
 
@@ -115,7 +117,6 @@
     function smartCase(text) {
         if (!text) return "";
         let cleaned = romanToNumber(text.trim());
-        // Perbaikan: Menambahkan KH. ke whitelist
         const whitelist = ["TPQ", "TPA", "SD", "MI", "MIS", "MTs", "MTS", "SMP", "MA", "PP.", "Pon.Pes.", "BUQ", "SDIT", "TK", "RA", "KH."];
         
         return cleaned.split(' ').map(word => {
@@ -129,27 +130,41 @@
     window.onload = async () => {
         try {
             const response = await fetch(SHEET_URL);
+            if (!response.ok) throw new Error("Gagal mengambil data dari Google Sheets.");
+            
             const csvText = await response.text();
+            
+            // Validasi jika Sheet tidak di-share publik
+            if (csvText.startsWith("<!DOCTYPE html>")) {
+                throw new Error("Akses ditolak. Ubah izin berbagi Google Sheet menjadi Publik.");
+            }
+            
             processData(csvText);
         } catch (e) {
-            document.getElementById('shift-container').innerText = "Gagal memuat data.";
+            document.getElementById('shift-container').innerHTML = `<span style="color:#ef4444; font-size:12px;">Error: ${e.message}</span>`;
         }
     };
 
     function processData(csv) {
-        const rows = csv.trim().split('\n');
+        // UPDATE: Membersihkan baris kosong secara otomatis
+        const rows = csv.trim().split('\n').filter(r => r.trim().length > 0);
+        if (rows.length < 2) return;
+        
         const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim().toUpperCase());
         allData = [];
         let gelombangs = new Set();
+        
         for (let i = 1; i < rows.length; i++) {
             const cols = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             let p = {};
             cols.forEach((v, j) => p[headers[j]] = v ? v.replace(/"/g, '').trim() : '');
+            
             if(p['GELOMBANG']) {
                 allData.push(p);
                 gelombangs.add(p['GELOMBANG']);
             }
         }
+        
         const container = document.getElementById('shift-container');
         container.innerHTML = '';
         Array.from(gelombangs).sort().forEach(g => {
@@ -187,17 +202,20 @@
         `;
         const tableArea = page.querySelector('.content-tables');
         const dataGel = allData.filter(d => d['GELOMBANG'] === gelombang);
+        
         [1, 2, 3].forEach(shiftNum => {
             const dataShift = dataGel.filter(d => String(d['SHIFT']) === String(shiftNum));
             if(dataShift.length > 0) tableArea.appendChild(createShiftTable(shiftNum, dataShift));
         });
+        
         document.getElementById('main-output').appendChild(page);
     }
 
     function createShiftTable(num, data) {
         let rekap = {};
         data.forEach(d => {
-            let tpq = d['ASAL LEMBAGA / TPQ'] || 'UMUM';
+            // UPDATE: Menggunakan header baru ASAL LEMBAGA
+            let tpq = d['ASAL LEMBAGA'] || 'UMUM';
             if(tpq.includes('-')) tpq = tpq.split('-').slice(1).join('-').trim();
             tpq = smartCase(tpq);
             rekap[tpq] = (rekap[tpq] || 0) + 1;
